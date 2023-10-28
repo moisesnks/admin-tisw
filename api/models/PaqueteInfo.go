@@ -6,10 +6,12 @@ type PaqueteInfo struct {
 	Nombre              string               `json:"nombre"`
 	IdOrigen            int                  `json:"id_origen"`
 	IdDestino           int                  `json:"id_destino"`
-	IdHabitacionHotel   int                  `json:"id_hh"`
 	Descripcion         string               `json:"descripcion"`
 	Detalles            string               `json:"detalles"`
 	Precio              int                  `json:"precio_viaje"`
+	IdHabitacionHotel   string               `json:"id_hh"`
+	Imagenes            string               `json:"imagenes"`
+	TotalPersonas       int                  `json:"total_personas"`
 	NombreCiudadOrigen  string               `json:"nombre_ciudad_origen"`
 	NombreCiudadDestino string               `json:"nombre_ciudad_destino"`
 	InfoPaquete         PaqueteInfoAdicional `json:"info_paquete"`

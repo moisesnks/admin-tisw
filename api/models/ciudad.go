@@ -8,4 +8,5 @@ type Ciudad struct {
 	PaisID     int    `json:"pais_id"`
 	NombrePais string `json:"nombre_pais"`
 	AbrevPais  string `json:"abrev_pais"`
+	Imagenes   string `json:"imagenes"`
 }
