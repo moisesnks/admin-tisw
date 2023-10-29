@@ -18,7 +18,7 @@ func ConfigureRoutes(r *mux.Router) {
 	// Rutas para los Schemas
 	r.Handle("/api/admin/aeropuertos", http.HandlerFunc(handlers.GetAllAeropuertos))
 	r.Handle("/api/admin/ciudades", http.HandlerFunc(handlers.GetAllCiudades))
-	r.Handle("/api/admin/paises", http.HandlerFunc(handlers.GetAllPaises))
+
 	r.Handle("/api/admin/paquetes", http.HandlerFunc(handlers.GetAllPaquetes))
 
 	// Ruta para las imágenes
@@ -37,4 +37,7 @@ func ConfigureRoutes(r *mux.Router) {
 	r.Handle("/api/admin/facturacion/actualizar", http.HandlerFunc(handlers.UpdateFactura))
 	r.Handle("/api/admin/facturacion/eliminar", http.HandlerFunc(handlers.DeleteFactura))
 
+	// Paises
+	r.Handle("/api/admin/paises", http.HandlerFunc(handlers.GetAllPaises))
+	r.Handle("/api/admin/paises/crear", http.HandlerFunc(handlers.CreatePais))
 }
