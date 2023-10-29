@@ -7,6 +7,10 @@ import (
 	"net/http"
 )
 
+// Hay que cambiar los nombres de las funciones para algo más representantivo a lo que sería buscar paquetes por fecha
+// le falta hacer el cruce con el id del AO y el id del AD y fechaInit y fechaFin y totalPersonas
+// podrían pedir los parámetros como form o en el query, se los dejo a ustedes, form pareciera más apropiado
+
 // GetAllPaquetes obtiene todos los paquetes y los devuelve como JSON.
 func GetAllPaquetes(w http.ResponseWriter, r *http.Request) {
 	paquetes, err := fetchPaquetes()
@@ -33,7 +37,8 @@ func fetchPaquetes() ([]models.PaqueteInfo, error) {
 	defer db.Close()
 
 	rows, err := db.Query(`
-		SELECT DISTINCT
+	WITH ranked_packages AS (
+		SELECT
 			paquete.*,
 			COALESCE(total_personas, 0) AS total_personas,
 			ciudad_origen.nombre AS nombre_ciudad_origen,
@@ -53,29 +58,34 @@ func fetchPaquetes() ([]models.PaqueteInfo, error) {
 			hotel.servicios AS servicios_hotel,
 			hotel.telefono AS telefono_hotel,
 			hotel.correo_electronico AS correo_electronico_hotel,
-			hotel.sitio_web AS sitio_web_hotel
-	FROM
-		paquete
-		INNER JOIN unnest(paquete.id_hh) WITH ORDINALITY t(habitacion_id, ord) ON TRUE
-		INNER JOIN habitacionhotel ON t.habitacion_id = habitacionhotel.id
-		INNER JOIN hotel ON habitacionhotel.hotel_id = hotel.id
-		INNER JOIN opcionhotel ON habitacionhotel.opcion_hotel_id = opcionhotel.id
-		INNER JOIN ciudad ciudad_origen ON paquete.id_origen = ciudad_origen.id
-		INNER JOIN ciudad ciudad_destino ON paquete.id_destino = ciudad_destino.id
-		LEFT JOIN (
-			SELECT
-				paquete.id AS paquete_id,
-				SUM(opcionhotel.cantidad) AS total_personas
-			FROM
-				paquete
-				INNER JOIN unnest(paquete.id_hh) WITH ORDINALITY t(habitacion_id, ord) ON TRUE
-				INNER JOIN habitacionhotel ON t.habitacion_id = habitacionhotel.id
-				INNER JOIN opcionhotel ON habitacionhotel.opcion_hotel_id = opcionhotel.id
-			GROUP BY
-				paquete.id
-		) AS subquery ON paquete.id = subquery.paquete_id
-	ORDER BY
-		paquete.id;
+			hotel.sitio_web AS sitio_web_hotel,
+			ROW_NUMBER() OVER (PARTITION BY paquete.id ORDER BY paquete.id) AS row_num
+		FROM
+			paquete
+			INNER JOIN unnest(paquete.id_hh) WITH ORDINALITY t(habitacion_id, ord) ON TRUE
+			INNER JOIN habitacionhotel ON t.habitacion_id = habitacionhotel.id
+			INNER JOIN hotel ON habitacionhotel.hotel_id = hotel.id
+			INNER JOIN opcionhotel ON habitacionhotel.opcion_hotel_id = opcionhotel.id
+			INNER JOIN ciudad ciudad_origen ON paquete.id_origen = ciudad_origen.id
+			INNER JOIN ciudad ciudad_destino ON paquete.id_destino = ciudad_destino.id
+			LEFT JOIN (
+				SELECT
+					paquete.id AS paquete_id,
+					SUM(opcionhotel.cantidad) AS total_personas
+				FROM
+					paquete
+					INNER JOIN unnest(paquete.id_hh) WITH ORDINALITY t(habitacion_id, ord) ON TRUE
+					INNER JOIN habitacionhotel ON t.habitacion_id = habitacionhotel.id
+					INNER JOIN opcionhotel ON habitacionhotel.opcion_hotel_id = opcionhotel.id
+				GROUP BY
+					paquete.id
+			) AS subquery ON paquete.id = subquery.paquete_id
+	)
+	SELECT *
+	FROM ranked_packages
+	WHERE row_num = 1
+	
+	
     `)
 	if err != nil {
 		return nil, err
@@ -96,28 +106,29 @@ func fetchPaquetes() ([]models.PaqueteInfo, error) {
 			&paqueteInfo.IdDestino,
 			&paqueteInfo.Descripcion,
 			&paqueteInfo.Detalles,
-			&paqueteInfo.Precio,
-			&paqueteInfo.IdHabitacionHotel,
+			&paqueteInfo.PrecioVuelo,
+			&paqueteInfo.ListaHH,
 			&paqueteInfo.Imagenes,
 			&paqueteInfo.TotalPersonas,
 			&paqueteInfo.NombreCiudadOrigen,
 			&paqueteInfo.NombreCiudadDestino,
-			&infoPaquete.HabitacionID,
-			&infoPaquete.OpcionHotelID,
+			&infoPaquete.HabitacionId,
+			&infoPaquete.OpcionHotelId,
 			&infoPaquete.NombreOpcionHotel,
 			&infoPaquete.DescripcionHabitacion,
 			&infoPaquete.ServiciosHabitacion,
-			&infoPaquete.PrecioNoche,
+			&paqueteInfo.PrecioNoche,
 			&hotelInfo.ID,
-			&hotelInfo.Nombre,
-			&hotelInfo.CiudadID,
-			&hotelInfo.Direccion,
-			&hotelInfo.Valoracion,
+			&hotelInfo.NombreHotel,
+			&hotelInfo.CiudadIdHotel,
+			&hotelInfo.DireccionHotel,
+			&hotelInfo.ValoracionHotel,
 			&hotelInfo.DescripcionHotel,
 			&hotelInfo.ServiciosHotel,
-			&hotelInfo.Telefono,
+			&hotelInfo.TelefonoHotel,
 			&hotelInfo.CorreoElectronico,
 			&hotelInfo.SitioWeb,
+			&infoPaquete.RowNum,
 		)
 
 		if err != nil {
