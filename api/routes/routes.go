@@ -13,7 +13,7 @@ func ConfigureRoutes(r *mux.Router) {
 	// c := middleware.CorsMiddleware(allowedOrigins)
 	// r.Use(c)
 
-	r.Handle("/api/admin", http.HandlerFunc(handlers.HomeHandler))
+	r.Handle("/api/admin/", http.HandlerFunc(handlers.HomeHandler))
 
 	// Rutas para las all Schemas
 	r.Handle("/api/admin/all_aeropuertos", http.HandlerFunc(handlers.GetAllAeropuertos))
@@ -23,8 +23,8 @@ func ConfigureRoutes(r *mux.Router) {
 
 	// Ruta para las imágenes
 	r.Handle("/api/admin/imagenes/listar", http.HandlerFunc(handlers.ListarTodasLasImagenes))
-	r.Handle("api/admin/imagenes/listar/bucket", http.HandlerFunc(handlers.ImagenesBucket))
-	r.Handle("api/admin/imagenes/listar/bd", http.HandlerFunc(handlers.ImagenesBd))
+	r.Handle("/api/admin/imagenes/listar/bucket", http.HandlerFunc(handlers.ImagenesBucket))
+	r.Handle("/api/admin/imagenes/listar/bd", http.HandlerFunc(handlers.ImagenesBd))
 
 	r.Handle("/api/admin/imagenes/subir", http.HandlerFunc(handlers.PostImagen)).Methods("POST")
 
