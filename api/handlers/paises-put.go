@@ -4,6 +4,7 @@ import (
 	"admin/api/utils"
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
 // PaisUpdate representa la estructura para la actualización parcial de un país
@@ -25,19 +26,26 @@ func UpdatePais(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Actualizar el país en la base de datos
-	err = updatePais(paisUpdate.ID, paisUpdate.Nombre, paisUpdate.Abreviacion, paisUpdate.Imagenes)
+	// Actualizar el país en la base de datos según los campos proporcionados
+	err = updatePais(paisUpdate)
 	if err != nil {
 		handleError(w, "Error al actualizar el país", http.StatusInternalServerError, err)
 		return
 	}
 
-	// Responder con éxito
+	// Responder con una respuesta JSON apropiada
+	response := map[string]interface{}{
+		"status":  "success",
+		"message": "Pais actualizado con éxito",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 // Realizar la actualización en la base de datos
-func updatePais(id int, nombre *string, abreviacion *string, imagenes *string) error {
+func updatePais(paisUpdate PaisUpdate) error {
 
 	db, err := utils.OpenDB()
 	if err != nil {
@@ -49,27 +57,27 @@ func updatePais(id int, nombre *string, abreviacion *string, imagenes *string) e
 	query := "UPDATE Pais SET"
 	args := make([]interface{}, 0)
 
-	if nombre != nil {
-		query += " nombre = $1,"
-		args = append(args, *nombre)
+	if paisUpdate.Nombre != nil {
+		query += " nombre = $" + strconv.Itoa(len(args)+1) + ","
+		args = append(args, *paisUpdate.Nombre)
 	}
 
-	if abreviacion != nil {
-		query += " abreviacion = $2,"
-		args = append(args, *abreviacion)
+	if paisUpdate.Abreviacion != nil {
+		query += " abreviacion = $" + strconv.Itoa(len(args)+1) + ","
+		args = append(args, *paisUpdate.Abreviacion)
 	}
 
-	if imagenes != nil {
-		query += " imagenes = $3,"
-		args = append(args, *imagenes)
+	if paisUpdate.Imagenes != nil {
+		query += " imagenes = $" + strconv.Itoa(len(args)+1) + ","
+		args = append(args, *paisUpdate.Imagenes)
 	}
 
 	// Eliminar la última coma
 	query = query[:len(query)-1]
 
 	// Agregar la condición WHERE
-	query += " WHERE id = $4"
-	args = append(args, id)
+	query += " WHERE id = $" + strconv.Itoa(len(args)+1)
+	args = append(args, paisUpdate.ID)
 
 	// Ejecutar la consulta
 	_, err = db.Exec(query, args...)
