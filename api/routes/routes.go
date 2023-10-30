@@ -43,6 +43,6 @@ func ConfigureRoutes(r *mux.Router) {
 	r.Handle("/api/admin/paquetes", http.HandlerFunc(handlers.GetAllPaquetes))
 	r.Handle("/api/admin/paquetes/crear", http.HandlerFunc(handlers.CreatePaquete))
 	r.Handle("/api/admin/paquetes/eliminar", http.HandlerFunc(handlers.DeletePaquete))
-	//r.Handle("/api/admin/paquetes/eliminar", http.HandlerFunc(handlers.UpdatePaquete))
+	r.Handle("/api/admin/paquetes/actualizar", http.HandlerFunc(handlers.UpdatePaquete))
 
 }
