@@ -40,4 +40,6 @@ func ConfigureRoutes(r *mux.Router) {
 	// Paises
 	r.Handle("/api/admin/paises", http.HandlerFunc(handlers.GetAllPaises))
 	r.Handle("/api/admin/paises/crear", http.HandlerFunc(handlers.CreatePais))
+	r.Handle("/api/admin/paises/actualizar", http.HandlerFunc(handlers.UpdatePais))
+
 }
